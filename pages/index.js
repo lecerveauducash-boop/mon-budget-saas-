@@ -32,7 +32,7 @@ export default function Home() {
           cursor: 'pointer'
         }}
       >
-        {loading ? 'Redirection...' : "S'abonner — 14,99 €/mois"}
+        {loading ? 'Redirection...' : "S'abonner — 24,99 €/mois"}
       </button>
       <p style={{ marginTop: 24, fontSize: 14, opacity: 0.7 }}>
         Déjà abonné ? <a href="/login">Se connecter</a>
