@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mon Budget — Enveloppes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --kraft:#D9C7A3;
+    --kraft-dark:#BFA97D;
+    --paper:#F1E7D2;
+    --paper-line:#e3d3af;
+    --ink:#1F3350;
+    --ink-light:#3A5578;
+    --stamp-red:#B2402F;
+    --sage:#54754F;
+    --gold:#B9862F;
+    --shadow: rgba(31,51,80,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--kraft);
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(255,255,255,0.15), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(0,0,0,0.06), transparent 45%);
+    font-family:'Work Sans', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+
+  .masthead{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:14px;
+    padding:28px 32px;
+    box-shadow:0 10px 24px var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::before{
+    content:"";
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 14px);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px,4vw,38px);
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .masthead > p{margin:0; opacity:0.75; font-size:14.5px;}
+
+  .month-row{
+    margin-top:22px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .month-nav{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:rgba(241,231,210,0.08);
+    border:1px solid rgba(241,231,210,0.28);
+    border-radius:8px;
+    padding:6px 8px;
+  }
+  .month-nav button{
+    background:transparent;
+    border:none;
+    color:var(--paper);
+    font-size:16px;
+    cursor:pointer;
+    padding:2px 8px;
+    border-radius:5px;
+    transition:background 0.15s;
+  }
+  .month-nav button:hover{background:rgba(241,231,210,0.15);}
+  .month-label{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    min-width:150px;
+    text-align:center;
+    text-transform:capitalize;
+  }
+  .month-select{
+    background:rgba(241,231,210,0.08);
+    border:1px solid rgba(241,231,210,0.28);
+    color:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:7px 10px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .month-select option{color:#000;}
+
+  .salary-row{
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .salary-row label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:rgba(241,231,210,0.7);
+  }
+  .salary-input-box{
+    display:flex;
+    align-items:baseline;
+    background:rgba(241,231,210,0.08);
+    border:1px solid rgba(241,231,210,0.28);
+    border-radius:8px;
+    padding:6px 14px;
+  }
+  .salary-input-box span{font-family:'IBM Plex Mono',monospace; color:var(--gold); margin-right:6px; font-size:20px;}
+  #salaireInput{
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    font-weight:600;
+    width:150px;
+  }
+  #salaireInput::placeholder{color:rgba(241,231,210,0.35);}
+
+  .summary{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin:22px 0 30px;
+  }
+  .ticket{
+    background:var(--paper);
+    border:1px dashed var(--kraft-dark);
+    border-radius:10px;
+    padding:16px 18px;
+    position:relative;
+  }
+  .ticket .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-light);
+    opacity:0.7;
+    margin-bottom:6px;
+  }
+  .ticket .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:26px;
+    font-weight:700;
+  }
+  .ticket.ok .value{color:var(--sage);}
+  .ticket.warn .value{color:var(--stamp-red);}
+  .ticket.neutral .value{color:var(--ink);}
+
+  .alert-banner{
+    display:none;
+    background:var(--stamp-red);
+    color:#fff;
+    border-radius:10px;
+    padding:14px 18px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    margin-bottom:24px;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 6px 16px rgba(178,64,47,0.35);
+  }
+  .alert-banner.show{display:flex;}
+  .stamp{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    border:2px solid #fff;
+    border-radius:6px;
+    padding:2px 8px;
+    transform:rotate(-4deg);
+    font-size:12px;
+    letter-spacing:0.08em;
+    flex-shrink:0;
+  }
+
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-size:18px;
+    font-weight:600;
+    margin:36px 0 14px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .section-title:first-of-type{margin-top:0;}
+  .section-title small{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:400;
+    font-size:12px;
+    color:var(--ink-light);
+    opacity:0.65;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+    gap:16px;
+    margin-bottom:16px;
+  }
+  .envelope{
+    background:var(--paper);
+    border-radius:12px;
+    box-shadow:0 6px 14px var(--shadow);
+    position:relative;
+    overflow:hidden;
+    padding-top:18px;
+  }
+  .flap{
+    position:absolute;
+    top:0; left:0; right:0;
+    height:52px;
+    background:var(--kraft-dark);
+    clip-path:polygon(0 0, 50% 68%, 100% 0);
+    opacity:0.55;
+  }
+  .env-body{position:relative; padding:34px 18px 18px;}
+  .env-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:10px;
+  }
+  .env-icon{font-size:22px; line-height:1;}
+  .env-del{
+    background:none;border:none;cursor:pointer;
+    color:var(--ink-light); opacity:0.4;
+    font-size:15px; padding:0 2px;
+    transition:opacity 0.15s, color 0.15s;
+  }
+  .env-del:hover{opacity:1; color:var(--stamp-red);}
+  .env-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    margin:0 0 12px;
+  }
+  .env-amount-row{
+    display:flex; align-items:baseline; gap:5px;
+    border-bottom:1px solid var(--paper-line);
+    padding-bottom:8px; margin-bottom:10px;
+  }
+  .env-amount-row span{font-family:'IBM Plex Mono',monospace; color:var(--ink-light); font-size:15px;}
+  .env-amount{
+    background:transparent;
+    border:none;
+    outline:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:19px;
+    font-weight:600;
+    color:var(--ink);
+    width:100%;
+  }
+  .env-meta{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-light);
+    opacity:0.75;
+    margin-bottom:6px;
+  }
+  .bar-track{
+    height:7px;
+    background:var(--kraft);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background:var(--sage);
+    border-radius:4px;
+    transition:width 0.35s ease;
+  }
+
+  .add-envelope{
+    border:2px dashed var(--kraft-dark);
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:150px;
+    color:var(--ink-light);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    cursor:pointer;
+    background:transparent;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  .add-envelope:hover{background:rgba(241,231,210,0.5); border-color:var(--ink-light);}
+
+  .new-form{
+    display:none;
+    background:var(--paper);
+    border-radius:12px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px var(--shadow);
+    gap:10px;
+    flex-direction:column;
+  }
+  .new-form.show{display:flex;}
+  .new-form input, .new-form select{
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+    padding:8px 10px;
+    border:1px solid var(--kraft-dark);
+    border-radius:6px;
+    background:#fff;
+    outline:none;
+  }
+  .new-form-actions{display:flex; gap:8px;}
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.04em;
+    border:none;
+    border-radius:6px;
+    padding:9px 14px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .btn-primary{background:var(--ink); color:var(--paper);}
+  .btn-primary:hover{background:var(--ink-light);}
+  .btn-ghost{background:transparent; color:var(--ink-light); border:1px solid var(--kraft-dark);}
+  .btn-ghost:hover{background:rgba(0,0,0,0.04);}
+
+  .history-wrap{
+    background:var(--paper);
+    border-radius:12px;
+    box-shadow:0 6px 14px var(--shadow);
+    padding:18px 20px 8px;
+  }
+  .history-empty{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink-light);
+    opacity:0.7;
+    padding:6px 0 14px;
+  }
+  .history-row{
+    display:grid;
+    grid-template-columns: 110px 1fr 90px;
+    align-items:center;
+    gap:14px;
+    padding:9px 0;
+    border-bottom:1px solid var(--paper-line);
+    cursor:pointer;
+  }
+  .history-row:last-child{border-bottom:none;}
+  .history-row:hover .history-month{color:var(--gold);}
+  .history-row.current .history-month{color:var(--stamp-red);}
+  .history-month{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    text-transform:capitalize;
+    transition:color 0.15s;
+  }
+  .history-bar-track{
+    height:16px;
+    background:var(--kraft);
+    border-radius:4px;
+    overflow:hidden;
+    position:relative;
+  }
+  .history-bar-fill{
+    height:100%;
+    border-radius:4px;
+  }
+  .history-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    text-align:right;
+    font-weight:600;
+  }
+
+  /* Graphiques */
+  .chart-flex{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .chart-card{
+    background:var(--paper);
+    border-radius:12px;
+    box-shadow:0 6px 14px var(--shadow);
+    padding:18px 20px;
+    flex:1;
+    min-width:280px;
+  }
+  .chart-card h3{
+    font-family:'Fraunces', serif;
+    font-size:14.5px;
+    font-weight:600;
+    margin:0 0 14px;
+  }
+  .donut-wrap{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .donut-center-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+    fill:var(--ink);
+  }
+  .legend{
+    list-style:none;
+    margin:0; padding:0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex:1;
+    min-width:140px;
+  }
+  .legend li{display:flex; align-items:center; gap:7px;}
+  .legend .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+  .legend .lname{flex:1; opacity:0.85;}
+  .legend .lval{font-weight:600;}
+  .chart-empty{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-light);
+    opacity:0.65;
+  }
+  .trend-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    fill:var(--ink-light);
+  }
+
+  /* Journal / historique daté */
+  .journal-wrap{
+    background:var(--paper);
+    border-radius:12px;
+    box-shadow:0 6px 14px var(--shadow);
+    padding:6px 20px;
+    max-height:280px;
+    overflow-y:auto;
+  }
+  .journal-row{
+    display:flex;
+    gap:14px;
+    padding:10px 0;
+    border-bottom:1px solid var(--paper-line);
+    align-items:baseline;
+  }
+  .journal-row:last-child{border-bottom:none;}
+  .journal-time{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-light);
+    opacity:0.7;
+    white-space:nowrap;
+    min-width:128px;
+  }
+  .journal-text{
+    font-family:'Work Sans', sans-serif;
+    font-size:13px;
+  }
+  .journal-empty{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-light);
+    opacity:0.65;
+    padding:14px 0;
+  }
+
+  /* Récap email */
+  .email-box{
+    background:var(--paper);
+    border-radius:12px;
+    box-shadow:0 6px 14px var(--shadow);
+    padding:18px 20px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .email-box input{
+    flex:1;
+    min-width:200px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    padding:10px 12px;
+    border:1px solid var(--kraft-dark);
+    border-radius:6px;
+    background:#fff;
+    outline:none;
+  }
+  .email-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-light);
+    opacity:0.65;
+    width:100%;
+    margin-top:2px;
+  }
+
+  footer{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink);
+    opacity:0.45;
+    margin-top:30px;
+  }
+
+  @media (max-width:560px){
+    .summary{grid-template-columns:1fr;}
+    .history-row{grid-template-columns:80px 1fr 70px; gap:8px;}
+    .chart-flex{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <p class="eyebrow">Budget mensuel</p>
+    <h1>Mon Budget</h1>
+    <p>Répartissez votre salaire en enveloppes, mois après mois.</p>
+
+    <div class="month-row">
+      <div class="month-nav">
+        <button id="prevMonth" title="Mois précédent">◀</button>
+        <span class="month-label" id="monthLabel">—</span>
+        <button id="nextMonth" title="Mois suivant">▶</button>
+      </div>
+      <select class="month-select" id="monthSelect"></select>
+    </div>
+
+    <div class="salary-row">
+      <label for="salaireInput">Salaire de ce mois</label>
+      <div class="salary-input-box">
+        <span>€</span>
+        <input id="salaireInput" type="number" placeholder="1600" min="0" step="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="ticket neutral">
+      <div class="label">Salaire</div>
+      <div class="value" id="sumSalaire">0 €</div>
+    </div>
+    <div class="ticket ok" id="sumAlloueTicket">
+      <div class="label">Alloué aux enveloppes</div>
+      <div class="value" id="sumAlloue">0 €</div>
+    </div>
+    <div class="ticket ok" id="sumResteTicket">
+      <div class="label">Reste disponible</div>
+      <div class="value" id="sumReste">0 €</div>
+    </div>
+  </div>
+
+  <div class="alert-banner" id="alertBanner">
+    <span class="stamp">Attention</span>
+    <span id="alertText">Vos enveloppes dépassent votre salaire.</span>
+  </div>
+
+  <div class="section-title">Enveloppes <small id="loadingNote"></small></div>
+  <div class="grid" id="envGrid"></div>
+
+  <div class="new-form" id="newForm">
+    <input type="text" id="newName" placeholder="Nom de l'enveloppe (ex. Internet)">
+    <input type="number" id="newAmount" placeholder="Montant en €" min="0" step="1">
+    <select id="newIcon">
+      <option value="💶">💶 Général</option>
+      <option value="🚗">🚗 Transport</option>
+      <option value="🏠">🏠 Logement</option>
+      <option value="🛒">🛒 Alimentation</option>
+      <option value="⚡">⚡ Énergie</option>
+      <option value="🎉">🎉 Loisir</option>
+      <option value="🚨">🚨 Urgence</option>
+      <option value="✈️">✈️ Voyage</option>
+      <option value="🩺">🩺 Santé</option>
+    </select>
+    <div class="new-form-actions">
+      <button class="btn btn-primary" id="confirmAdd">Ajouter</button>
+      <button class="btn btn-ghost" id="cancelAdd">Annuler</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="add-envelope" id="addEnvelopeBtn">+ Nouvelle enveloppe</div>
+  </div>
+
+  <div class="section-title">Historique <small>tous les mois enregistrés</small></div>
+  <div class="history-wrap">
+    <div id="historyList"></div>
+  </div>
+
+  <div class="section-title">Aperçu graphique <small id="chartMonthNote"></small></div>
+  <div class="chart-flex">
+    <div class="chart-card">
+      <h3>Répartition du mois</h3>
+      <div id="donutWrap"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Reste disponible, mois par mois</h3>
+      <div id="trendWrap"></div>
+    </div>
+  </div>
+
+  <div class="section-title">Historique des modifications <small>date, heure, action</small></div>
+  <div class="journal-wrap">
+    <div id="journalList"></div>
+  </div>
+
+  <div class="section-title">Récapitulatif par email <small>prépare un e-mail, tu l'envoies toi-même</small></div>
+  <div class="email-box">
+    <input type="email" id="recapEmail" placeholder="Adresse email du destinataire (optionnel)">
+    <button class="btn btn-primary" id="prepareEmailBtn">Préparer le récapitulatif</button>
+    <span class="email-note">Ouvre ton application mail avec le récap déjà rédigé pour le mois affiché — un vrai envoi automatique n'est pas possible depuis une page statique.</span>
+  </div>
+
+  <footer>Vos données restent enregistrées entre vos visites, sur cet appareil.</footer>
+</div>
+
+<script>
+const DEFAULT_ENVELOPE_DEFS = [
+  { id:'credit_voiture', name:'Crédit voiture', icon:'🚗' },
+  { id:'assurance', name:'Assurance', icon:'🛡️' },
+  { id:'loyer', name:'Loyer / Maison', icon:'🏠' },
+  { id:'eau', name:'Eau', icon:'💧' },
+  { id:'electricite', name:'Électricité', icon:'⚡' },
+  { id:'courses', name:'Courses', icon:'🛒' },
+  { id:'vacances', name:'Vacances', icon:'✈️' },
+  { id:'urgence', name:'Besoin urgent', icon:'🚨' },
+  { id:'plaisir', name:'Plaisir', icon:'🎉' },
+];
+
+const MOIS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+function todayMonthKey(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function monthKeyToLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  return MOIS_FR[m-1] + ' ' + y;
+}
+function shiftMonthKey(key, delta){
+  let [y,m] = key.split('-').map(Number);
+  m += delta;
+  while(m > 12){ m -= 12; y += 1; }
+  while(m < 1){ m += 12; y -= 1; }
+  return y + '-' + String(m).padStart(2,'0');
+}
+
+let state = {
+  envelopeDefs: DEFAULT_ENVELOPE_DEFS.map(e => ({...e})),
+  months: {},
+  currentMonth: todayMonthKey(),
+  journal: []
+};
+state.months[state.currentMonth] = { salaire: 0, amounts: {} };
+
+const CHART_COLORS = ['#54754F','#B9862F','#3A5578','#B2402F','#7C6A46','#6B8F9E','#8C5E42','#9C6B98','#4E8B7C','#A45C3B','#5E7A9E','#B08968'];
+
+function nowLabel(){
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const min = String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm}/${yyyy} à ${hh}h${min}`;
+}
+
+function currentReste(){
+  const md = currentMonthData();
+  let totalAlloue = 0;
+  state.envelopeDefs.forEach(env => totalAlloue += (Number(md.amounts[env.id]) || 0));
+  return md.salaire - totalAlloue;
+}
+
+function logJournal(text){
+  state.journal.unshift({ ts: Date.now(), label: nowLabel(), text });
+  if(state.journal.length > 200) state.journal = state.journal.slice(0,200);
+  renderJournal();
+  saveState();
+}
+
+const fmt = (n) => (Math.round(n*100)/100).toLocaleString('fr-FR', {maximumFractionDigits:2}) + ' €';
+
+async function loadState(){
+  document.getElementById('loadingNote').textContent = '(chargement…)';
+  try{
+    const res = await fetch('/api/budget-data');
+    if(res.ok){
+      const json = await res.json();
+      if(json && json.data && json.data.months){
+        state = json.data;
+      }
+    }
+  }catch(e){
+    // pas de données sauvegardées encore
+  }
+  if(!state.months[state.currentMonth]){
+    state.months[state.currentMonth] = { salaire: 0, amounts: {} };
+  }
+  if(!Array.isArray(state.journal)) state.journal = [];
+  document.getElementById('loadingNote').textContent = '';
+  render();
+}
+
+async function saveState(){
+  try{
+    await fetch('/api/budget-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+  }catch(e){
+    console.error('Erreur de sauvegarde', e);
+  }
+}
+
+function ensureMonth(key){
+  if(state.months[key]) return state.months[key];
+  const keys = Object.keys(state.months).sort();
+  let base = null;
+  for(const k of keys){ if(k < key) base = k; }
+  if(!base && keys.length) base = keys[keys.length-1];
+  if(base){
+    state.months[key] = {
+      salaire: state.months[base].salaire,
+      amounts: {...state.months[base].amounts}
+    };
+  } else {
+    state.months[key] = { salaire: 0, amounts: {} };
+  }
+  return state.months[key];
+}
+
+function currentMonthData(){
+  return ensureMonth(state.currentMonth);
+}
+
+function populateMonthSelect(){
+  const sel = document.getElementById('monthSelect');
+  const keys = Object.keys(state.months).sort();
+  if(!keys.includes(state.currentMonth)) keys.push(state.currentMonth);
+  keys.sort();
+  sel.innerHTML = '';
+  keys.forEach(k=>{
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = monthKeyToLabel(k);
+    if(k === state.currentMonth) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function render(){
+  const md = currentMonthData();
+  document.getElementById('monthLabel').textContent = monthKeyToLabel(state.currentMonth);
+  document.getElementById('salaireInput').value = md.salaire || '';
+  populateMonthSelect();
+
+  const grid = document.getElementById('envGrid');
+  grid.innerHTML = '';
+
+  state.envelopeDefs.forEach(env => {
+    const amount = Number(md.amounts[env.id]) || 0;
+    const pct = md.salaire > 0 ? (amount / md.salaire) * 100 : 0;
+    const card = document.createElement('div');
+    card.className = 'envelope';
+    card.innerHTML = `
+      <div class="flap"></div>
+      <div class="env-body">
+        <div class="env-top">
+          <span class="env-icon">${env.icon}</span>
+          <button class="env-del" title="Supprimer cette catégorie" data-id="${env.id}">✕</button>
+        </div>
+        <p class="env-name">${env.name}</p>
+        <div class="env-amount-row">
+          <span>€</span>
+          <input class="env-amount" type="number" min="0" step="1" value="${amount || ''}" placeholder="0" data-id="${env.id}">
+        </div>
+        <div class="env-meta">
+          <span>${md.salaire>0 ? pct.toFixed(1)+'% du salaire' : '—'}</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.min(pct,100)}%; background:${pct>100?'var(--stamp-red)':'var(--sage)'}"></div></div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.env-amount').forEach(input=>{
+    input.addEventListener('input', (e)=>{
+      const id = e.target.dataset.id;
+      const md2 = currentMonthData();
+      md2.amounts[id] = e.target.value === '' ? 0 : Number(e.target.value);
+      renderSummaryOnly();
+      renderHistory();
+      renderDonut();
+      saveState();
+    });
+    input.addEventListener('change', (e)=>{
+      const id = e.target.dataset.id;
+      const env = state.envelopeDefs.find(x=>x.id===id);
+      if(env) logJournal(`Enveloppe « ${env.name} » modifiée : ${fmt(Number(e.target.value)||0)} (${monthKeyToLabel(state.currentMonth)})`);
+    });
+  });
+  grid.querySelectorAll('.env-del').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.target.dataset.id;
+      const env = state.envelopeDefs.find(x=>x.id===id);
+      state.envelopeDefs = state.envelopeDefs.filter(x=>x.id!==id);
+      render();
+      renderHistory();
+      saveState();
+      if(env) logJournal(`Enveloppe « ${env.name} » supprimée`);
+    });
+  });
+
+  renderSummaryOnly();
+  renderHistory();
+  renderCharts();
+  renderJournal();
+}
+
+function renderSummaryOnly(){
+  const md = currentMonthData();
+  let totalAlloue = 0;
+  state.envelopeDefs.forEach(env => totalAlloue += (Number(md.amounts[env.id]) || 0));
+  const reste = md.salaire - totalAlloue;
+
+  document.getElementById('sumSalaire').textContent = fmt(md.salaire || 0);
+  document.getElementById('sumAlloue').textContent = fmt(totalAlloue);
+  document.getElementById('sumReste').textContent = fmt(reste);
+
+  const alloueTicket = document.getElementById('sumAlloueTicket');
+  const resteTicket = document.getElementById('sumResteTicket');
+  const banner = document.getElementById('alertBanner');
+  const alertText = document.getElementById('alertText');
+
+  if(reste < 0){
+    resteTicket.className = 'ticket warn';
+    alloueTicket.className = 'ticket warn';
+    banner.classList.add('show');
+    alertText.textContent = `Vos enveloppes dépassent votre salaire de ${fmt(Math.abs(reste))} pour ce mois.`;
+  } else {
+    resteTicket.className = 'ticket ok';
+    alloueTicket.className = totalAlloue > 0 ? 'ticket ok' : 'ticket neutral';
+    banner.classList.remove('show');
+  }
+
+  document.querySelectorAll('.env-amount').forEach(input=>{
+    const id = input.dataset.id;
+    const amount = Number(md.amounts[id]) || 0;
+    const pct = md.salaire > 0 ? (amount / md.salaire) * 100 : 0;
+    const card = input.closest('.envelope');
+    card.querySelector('.env-meta span').textContent = md.salaire>0 ? pct.toFixed(1)+'% du salaire' : '—';
+    const fill = card.querySelector('.bar-fill');
+    fill.style.width = Math.min(pct,100)+'%';
+    fill.style.background = pct>100 ? 'var(--stamp-red)' : 'var(--sage)';
+  });
+}
+
+function renderHistory(){
+  const listEl = document.getElementById('historyList');
+  const keys = Object.keys(state.months).sort();
+  if(keys.length === 0){
+    listEl.innerHTML = '<div class="history-empty">Aucun mois enregistré pour le moment.</div>';
+    return;
+  }
+
+  let maxSalaire = 1;
+  keys.forEach(k => { if(state.months[k].salaire > maxSalaire) maxSalaire = state.months[k].salaire; });
+
+  listEl.innerHTML = '';
+  keys.forEach(k=>{
+    const md = state.months[k];
+    let totalAlloue = 0;
+    state.envelopeDefs.forEach(env => totalAlloue += (Number(md.amounts[env.id]) || 0));
+    const reste = md.salaire - totalAlloue;
+    const pctAlloue = md.salaire > 0 ? Math.min((totalAlloue/md.salaire)*100, 100) : 0;
+
+    const row = document.createElement('div');
+    row.className = 'history-row' + (k === state.currentMonth ? ' current' : '');
+    row.innerHTML = `
+      <span class="history-month">${monthKeyToLabel(k)}</span>
+      <div class="history-bar-track">
+        <div class="history-bar-fill" style="width:${pctAlloue}%; background:${reste<0 ? 'var(--stamp-red)' : 'var(--sage)'}"></div>
+      </div>
+      <span class="history-value" style="color:${reste<0 ? 'var(--stamp-red)' : 'var(--ink)'}">${fmt(reste)}</span>
+    `;
+    row.addEventListener('click', ()=>{
+      state.currentMonth = k;
+      render();
+    });
+    listEl.appendChild(row);
+  });
+}
+
+function renderJournal(){
+  const el = document.getElementById('journalList');
+  if(!state.journal || state.journal.length === 0){
+    el.innerHTML = '<div class="journal-empty">Aucune modification enregistrée pour le moment. Chaque changement de salaire ou d\'enveloppe apparaîtra ici avec la date et l\'heure.</div>';
+    return;
+  }
+  el.innerHTML = state.journal.map(entry => `
+    <div class="journal-row">
+      <span class="journal-time">${entry.label}</span>
+      <span class="journal-text">${entry.text}</span>
+    </div>
+  `).join('');
+}
+
+function renderDonut(){
+  const wrap = document.getElementById('donutWrap');
+  const md = currentMonthData();
+  document.getElementById('chartMonthNote').textContent = '(' + monthKeyToLabel(state.currentMonth) + ')';
+
+  const items = state.envelopeDefs
+    .map(env => ({ name: env.name, icon: env.icon, amount: Number(md.amounts[env.id]) || 0 }))
+    .filter(x => x.amount > 0);
+
+  const total = items.reduce((s,x)=>s+x.amount,0);
+
+  if(total <= 0){
+    wrap.innerHTML = '<p class="chart-empty">Aucun montant affecté ce mois-ci pour l\'instant.</p>';
+    return;
+  }
+
+  const r = 70, cx = 90, cy = 90, strokeW = 28;
+  const circumference = 2 * Math.PI * r;
+  let cumulative = 0;
+  let circles = '';
+  items.forEach((item, i)=>{
+    const frac = item.amount / total;
+    const segLen = frac * circumference;
+    const color = CHART_COLORS[i % CHART_COLORS.length];
+    circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeW}"
+      stroke-dasharray="${segLen} ${circumference-segLen}" stroke-dashoffset="${-cumulative}"
+      transform="rotate(-90 ${cx} ${cy})"></circle>`;
+    cumulative += segLen;
+  });
+
+  const legendHtml = items.map((item,i)=>{
+    const color = CHART_COLORS[i % CHART_COLORS.length];
+    const pct = ((item.amount/total)*100).toFixed(1);
+    return `<li><span class="dot" style="background:${color}"></span><span class="lname">${item.icon} ${item.name}</span><span class="lval">${pct}%</span></li>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="donut-wrap">
+      <svg width="180" height="180" viewBox="0 0 180 180">
+        ${circles}
+        <text x="90" y="85" text-anchor="middle" class="donut-center-label">${fmt(total)}</text>
+        <text x="90" y="102" text-anchor="middle" class="donut-center-label" style="font-weight:400; font-size:10px; opacity:0.7;">alloué</text>
+      </svg>
+      <ul class="legend">${legendHtml}</ul>
+    </div>
+  `;
+}
+
+function renderTrend(){
+  const wrap = document.getElementById('trendWrap');
+  const keys = Object.keys(state.months).sort().slice(-12);
+  if(keys.length === 0){
+    wrap.innerHTML = '<p class="chart-empty">Pas encore de mois enregistré.</p>';
+    return;
+  }
+
+  const values = keys.map(k=>{
+    const md = state.months[k];
+    let alloue = 0;
+    state.envelopeDefs.forEach(env => alloue += (Number(md.amounts[env.id])||0));
+    return { key:k, reste: md.salaire - alloue };
+  });
+
+  const maxAbs = Math.max(1, ...values.map(v=>Math.abs(v.reste)));
+  const chartW = Math.max(280, keys.length * 56);
+  const chartH = 160;
+  const zeroY = chartH/2;
+  const barW = 26;
+
+  let bars = '';
+  values.forEach((v,i)=>{
+    const x = i * (chartW/keys.length) + (chartW/keys.length - barW)/2;
+    const h = (Math.abs(v.reste)/maxAbs) * (zeroY - 14);
+    const y = v.reste >= 0 ? zeroY - h : zeroY;
+    const color = v.reste >= 0 ? 'var(--sage)' : 'var(--stamp-red)';
+    const [yy,mm] = v.key.split('-');
+    const shortLabel = MOIS_FR[Number(mm)-1].slice(0,3) + ' ' + yy.slice(2);
+    bars += `
+      <rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h,1)}" rx="3" fill="${color}"></rect>
+      <text x="${x + barW/2}" y="${chartH - 2}" text-anchor="middle" class="trend-label">${shortLabel}</text>
+    `;
+  });
+
+  wrap.innerHTML = `
+    <svg width="100%" height="${chartH+16}" viewBox="0 0 ${chartW} ${chartH+16}" preserveAspectRatio="xMinYMid meet" style="overflow:visible; display:block;">
+      <line x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}" stroke="var(--kraft-dark)" stroke-width="1"></line>
+      ${bars}
+    </svg>
+  `;
+}
+
+function renderCharts(){
+  renderDonut();
+  renderTrend();
+}
+
+document.getElementById('prepareEmailBtn').addEventListener('click', ()=>{
+  const md = currentMonthData();
+  let totalAlloue = 0;
+  const lines = [];
+  state.envelopeDefs.forEach(env => {
+    const amount = Number(md.amounts[env.id]) || 0;
+    totalAlloue += amount;
+    if(amount > 0){
+      const pct = md.salaire > 0 ? ((amount/md.salaire)*100).toFixed(1) : '0';
+      lines.push(`- ${env.name} : ${fmt(amount)} (${pct}% du salaire)`);
+    }
+  });
+  const reste = md.salaire - totalAlloue;
+
+  const subject = `Récapitulatif budget - ${monthKeyToLabel(state.currentMonth)}`;
+  const body = [
+    `Récapitulatif de mon budget - ${monthKeyToLabel(state.currentMonth)}`,
+    '',
+    `Salaire : ${fmt(md.salaire)}`,
+    `Alloué aux enveloppes : ${fmt(totalAlloue)}`,
+    `Reste disponible : ${fmt(reste)}`,
+    '',
+    'Détail par enveloppe :',
+    ...lines,
+    '',
+    `Récap préparé le ${nowLabel()}.`
+  ].join('\n');
+
+  const to = document.getElementById('recapEmail').value.trim();
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  logJournal(`Récapitulatif email préparé pour ${monthKeyToLabel(state.currentMonth)}`);
+});
+
+document.getElementById('salaireInput').addEventListener('input', (e)=>{
+  const md = currentMonthData();
+  md.salaire = e.target.value === '' ? 0 : Number(e.target.value);
+  renderSummaryOnly();
+  renderHistory();
+  renderDonut();
+  saveState();
+});
+document.getElementById('salaireInput').addEventListener('change', (e)=>{
+  logJournal(`Salaire modifié : ${fmt(Number(e.target.value)||0)} (${monthKeyToLabel(state.currentMonth)})`);
+});
+
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  state.currentMonth = shiftMonthKey(state.currentMonth, -1);
+  render();
+  saveState();
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  state.currentMonth = shiftMonthKey(state.currentMonth, 1);
+  render();
+  saveState();
+});
+document.getElementById('monthSelect').addEventListener('change', (e)=>{
+  state.currentMonth = e.target.value;
+  render();
+});
+
+document.getElementById('addEnvelopeBtn').addEventListener('click', ()=>{
+  document.getElementById('newForm').classList.add('show');
+  document.getElementById('newName').focus();
+});
+document.getElementById('cancelAdd').addEventListener('click', ()=>{
+  document.getElementById('newForm').classList.remove('show');
+  document.getElementById('newName').value='';
+  document.getElementById('newAmount').value='';
+});
+document.getElementById('confirmAdd').addEventListener('click', ()=>{
+  const name = document.getElementById('newName').value.trim();
+  const amount = Number(document.getElementById('newAmount').value) || 0;
+  const icon = document.getElementById('newIcon').value;
+  if(!name) return;
+  const id = 'env_'+Date.now();
+  state.envelopeDefs.push({ id, name, icon });
+  currentMonthData().amounts[id] = amount;
+  document.getElementById('newForm').classList.remove('show');
+  document.getElementById('newName').value='';
+  document.getElementById('newAmount').value='';
+  render();
+  saveState();
+  logJournal(`Enveloppe « ${name} » ajoutée avec ${fmt(amount)} (${monthKeyToLabel(state.currentMonth)})`);
+});
+
+loadState();
+</script>
+</body>
+</html>
