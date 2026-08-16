@@ -137,13 +137,22 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Touche personnelle — À PERSONNALISER : remplace la citation par tes propres mots */}
+        {/* Touche personnelle */}
         <section className="brandWrap">
-          <p className="brandQuote">
-            « [À REMPLACER : quelques phrases authentiques sur pourquoi tu as créé cet outil,
-            dans tes propres mots.] »
+          <p
+            className="brandQuote brandAnim"
+            ref={(el) => (featuresRef.current[3] = el)}
+          >
+            « Il y a 4 ans, j'ai touché mon premier salaire. Personne ne m'avait appris à le gérer.
+            Sorties, repas, achats impulsifs : en 4 ans, j'ai gaspillé 84 000 €. J'ai essayé le papier,
+            mais je perdais le fil, je n'avais aucun contrôle réel sur mon argent. Alors j'ai construit
+            l'outil que j'aurais aimé avoir depuis le début. Ça fait plus d'un an que je l'utilise, chaque
+            mois — et aujourd'hui, je sais exactement ce que je reçois, ce que je dépense, ce que j'épargne. »
           </p>
-          <div className="brandSignature">
+          <div
+            className="brandSignature brandAnim brandAnimDelay"
+            ref={(el) => (featuresRef.current[4] = el)}
+          >
             <div className="brandAvatar">LC</div>
             <div style={{ textAlign: 'left' }}>
               <div className="brandName">lecerveauducash</div>
@@ -410,6 +419,18 @@ export default function Home() {
           padding: 64px 24px 80px;
           text-align: center;
         }
+        .brandAnim {
+          opacity: 0;
+          transform: translateY(22px);
+          transition: opacity 0.8s cubic-bezier(.22,1,.36,1), transform 0.8s cubic-bezier(.22,1,.36,1);
+        }
+        .brandAnim.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .brandAnimDelay {
+          transition-delay: 0.18s;
+        }
         .brandQuote {
           font-size: 17px;
           line-height: 1.65;
@@ -461,6 +482,7 @@ export default function Home() {
         @media (prefers-reduced-motion: reduce) {
           .anim, .divider { animation: none; opacity: 1; }
           .feature { opacity: 1; transform: none; transition: none; }
+          .brandAnim { opacity: 1; transform: none; transition: none; }
           .glow { animation: none; }
         }
       `}</style>
