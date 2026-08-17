@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         }
 
         // 2. Enregistre / met à jour l'abonnement, lié à ce seul compte
-        await supabaseAdmin.from('subscriptions').upsert({
+        const { error: upsertErr } = await supabaseAdmin.from('subscriptions').upsert({
           user_id: userId,
           email,
           stripe_customer_id: stripeCustomerId,
@@ -61,13 +61,24 @@ export default async function handler(req, res) {
           status: 'active',
         }, { onConflict: 'user_id' });
 
+        if (upsertErr) {
+          console.error('Échec upsert subscriptions:', upsertErr);
+          throw upsertErr;
+        }
+
         // 3. Envoie un email au client pour qu'il définisse son mot de passe
         //    et accède à son compte personnel (lien magique à usage unique).
-        await supabaseAdmin.auth.admin.generateLink({
+        const { error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
           type: 'magiclink',
           email,
           options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` },
         });
+
+        if (linkErr) {
+          console.error('Échec generateLink:', linkErr);
+          // Non bloquant : le compte + l'abonnement sont déjà enregistrés,
+          // on ne veut pas faire échouer tout le webhook pour un email raté.
+        }
         // Note : par défaut Supabase envoie cet email automatiquement.
         // Personnalise le modèle dans Supabase > Authentication > Email Templates.
 
@@ -78,10 +89,15 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object;
         const status = sub.status === 'active' ? 'active' : 'inactive';
-        await supabaseAdmin
+        const { error: updateErr } = await supabaseAdmin
           .from('subscriptions')
           .update({ status })
           .eq('stripe_subscription_id', sub.id);
+
+        if (updateErr) {
+          console.error('Échec update subscriptions:', updateErr);
+          throw updateErr;
+        }
         break;
       }
 
