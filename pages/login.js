@@ -70,9 +70,8 @@ export default function Login() {
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              maxLength={6}
               required
-              placeholder="123456"
+              placeholder="Code reçu par email"
               value={code}
               onChange={e => setCode(e.target.value)}
               style={{ width: '100%', padding: 12, fontSize: 20, letterSpacing: 4, textAlign: 'center', marginBottom: 12 }}
