@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { createClient } from '../lib/supabaseClient';
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (router.query.error) {
+      setError("Le lien de connexion a expiré ou a déjà été utilisé. Demande-en un nouveau ci-dessous.");
+    }
+  }, [router.query.error]);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -15,7 +23,7 @@ export default function Login() {
     // Simple, sécurisé, et évite les mots de passe faibles/réutilisés.
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard` },
     });
 
     if (error) setError(error.message);
