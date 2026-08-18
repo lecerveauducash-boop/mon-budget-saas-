@@ -37,33 +37,25 @@ export default function Dashboard({ email }) {
         alert("Impossible d'ouvrir la gestion de l'abonnement pour le moment.");
         setLoadingPortal(false);
       }
-    } catch (err) {
-      alert("Impossible d'ouvrir la gestion de l'abonnement pour le moment.");
+    } catch {
+      alert("Une erreur est survenue.");
       setLoadingPortal(false);
     }
   }
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '10px 20px', background: '#1F3350', color: '#fff', fontFamily: 'sans-serif', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+      <div style={{ padding: '10px 20px', background: '#1F3350', color: '#fff', fontFamily: 'sans-serif', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Connecté en tant que {email}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <button
             onClick={handleManageSubscription}
             disabled={loadingPortal}
-            style={{
-              background: 'transparent',
-              border: '1px solid #fff',
-              color: '#fff',
-              borderRadius: 6,
-              padding: '6px 12px',
-              fontSize: 13,
-              cursor: loadingPortal ? 'default' : 'pointer',
-              opacity: loadingPortal ? 0.6 : 1,
-            }}
+            style={{ background: 'none', border: '1px solid #fff', color: '#fff', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer' }}
           >
-            {loadingPortal ? 'Ouverture...' : 'Gérer mon abonnement'}
+            {loadingPortal ? 'Chargement...' : 'Gérer mon abonnement'}
           </button>
+          <a href="/mot-de-passe" style={{ color: '#fff' }}>Mot de passe</a>
           <a href="/api/logout" style={{ color: '#fff' }}>Se déconnecter</a>
         </div>
       </div>
