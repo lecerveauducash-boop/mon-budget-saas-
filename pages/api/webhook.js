@@ -1,8 +1,18 @@
 import Stripe from 'stripe';
 import { buffer } from 'micro';
+import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Client "normal" (clé publique), utilisé uniquement pour déclencher
+// l'envoi réel de l'email de connexion — contrairement à generateLink()
+// côté admin, signInWithOtp() envoie effectivement l'email via le SMTP
+// configuré (Resend), au lieu de se contenter de fabriquer le lien.
+const supabasePublic = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 // Stripe a besoin du corps brut de la requête pour vérifier la signature,
 // donc on désactive le parsing automatique de Next.js.
@@ -66,21 +76,16 @@ export default async function handler(req, res) {
           throw upsertErr;
         }
 
-        // 3. Envoie un email au client pour qu'il définisse son mot de passe
-        //    et accède à son compte personnel (lien magique à usage unique).
-        const { error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
+        // 3. Envoie réellement un email au client avec son lien/code de
+        //    connexion, pour qu'il accède tout de suite à son compte.
+        const { error: emailErr } = await supabasePublic.auth.signInWithOtp({
           email,
-          options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` },
+          options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/dashboard` },
         });
 
-        if (linkErr) {
-          console.error('Échec generateLink:', linkErr);
-          // Non bloquant : le compte + l'abonnement sont déjà enregistrés,
-          // on ne veut pas faire échouer tout le webhook pour un email raté.
+        if (emailErr) {
+          console.error('Échec envoi email de bienvenue:', emailErr);
         }
-        // Note : par défaut Supabase envoie cet email automatiquement.
-        // Personnalise le modèle dans Supabase > Authentication > Email Templates.
 
         break;
       }
@@ -89,15 +94,10 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object;
         const status = sub.status === 'active' ? 'active' : 'inactive';
-        const { error: updateErr } = await supabaseAdmin
+        await supabaseAdmin
           .from('subscriptions')
           .update({ status })
           .eq('stripe_subscription_id', sub.id);
-
-        if (updateErr) {
-          console.error('Échec update subscriptions:', updateErr);
-          throw updateErr;
-        }
         break;
       }
 
