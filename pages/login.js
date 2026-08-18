@@ -5,50 +5,59 @@ import { createClient } from '../lib/supabaseClient';
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState('');
+  const [mode, setMode] = useState('password'); // 'password' | 'code-request' | 'code-verify'
+  const [code, setCode] = useState('');
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (router.query.error) {
-      setError("Le lien de connexion a expiré ou a déjà été utilisé. Demande-en un nouveau ci-dessous.");
+      setError("Le lien de connexion a expiré ou a déjà été utilisé. Utilise le mot de passe ou redemande un code ci-dessous.");
     }
   }, [router.query.error]);
 
-  const [code, setCode] = useState('');
-  const [verifying, setVerifying] = useState(false);
-
-  async function handleLogin(e) {
+  async function handlePasswordLogin(e) {
     e.preventDefault();
     setError('');
+    setSending(true);
     const supabase = createClient();
 
-    // Connexion sans mot de passe : Supabase envoie un lien magique ET un
-    // code à 6 chiffres dans le même email. Le lien peut être "grillé" par
-    // les scanners automatiques de sécurité des boîtes mail (Gmail, etc.)
-    // avant même que la personne ne clique dessus ; le code, lui, ne peut
-    // pas être consommé par un robot, donc c'est l'option la plus fiable.
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    setSending(false);
+    if (error) {
+      setError("Email ou mot de passe incorrect, ou aucun mot de passe défini pour ce compte. Utilise le code par email ci-dessous.");
+    } else {
+      window.location.href = '/dashboard';
+    }
+  }
+
+  async function handleRequestCode(e) {
+    e.preventDefault();
+    setError('');
+    setSending(true);
+    const supabase = createClient();
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard` },
     });
 
+    setSending(false);
     if (error) setError(error.message);
-    else setSent(true);
+    else setMode('code-verify');
   }
 
   async function handleVerifyCode(e) {
     e.preventDefault();
     setError('');
-    setVerifying(true);
+    setSending(true);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email',
-    });
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
 
-    setVerifying(false);
+    setSending(false);
     if (error) {
       setError("Code incorrect ou expiré. Vérifie le code reçu par email, ou redemande-en un nouveau.");
     } else {
@@ -59,12 +68,61 @@ export default function Login() {
   return (
     <main style={{ maxWidth: 420, margin: '80px auto', fontFamily: 'sans-serif', textAlign: 'center' }}>
       <h1>Connexion</h1>
-      {sent ? (
+
+      {mode === 'password' && (
+        <form onSubmit={handlePasswordLogin}>
+          <input
+            type="email"
+            required
+            placeholder="ton-email@exemple.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{ width: '100%', padding: 12, fontSize: 15, marginBottom: 12 }}
+          />
+          <input
+            type="password"
+            required
+            placeholder="Mot de passe"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{ width: '100%', padding: 12, fontSize: 15, marginBottom: 12 }}
+          />
+          <button type="submit" disabled={sending} style={{ width: '100%', padding: 12, background: '#1F3350', color: '#fff', border: 'none', borderRadius: 6 }}>
+            {sending ? 'Connexion...' : 'Se connecter'}
+          </button>
+          <p style={{ fontSize: 13, marginTop: 12 }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setMode('code-request'); }} style={{ color: '#1F3350' }}>
+              Pas de mot de passe ? Recevoir un code par email
+            </a>
+          </p>
+        </form>
+      )}
+
+      {mode === 'code-request' && (
+        <form onSubmit={handleRequestCode}>
+          <input
+            type="email"
+            required
+            placeholder="ton-email@exemple.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{ width: '100%', padding: 12, fontSize: 15, marginBottom: 12 }}
+          />
+          <button type="submit" disabled={sending} style={{ width: '100%', padding: 12, background: '#1F3350', color: '#fff', border: 'none', borderRadius: 6 }}>
+            {sending ? 'Envoi...' : 'Recevoir mon code de connexion'}
+          </button>
+          <p style={{ fontSize: 13, marginTop: 12 }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setMode('password'); }} style={{ color: '#1F3350' }}>
+              ← Se connecter avec un mot de passe
+            </a>
+          </p>
+        </form>
+      )}
+
+      {mode === 'code-verify' && (
         <>
           <p>Un email vient d'être envoyé à <strong>{email}</strong>.</p>
-          <p style={{ fontSize: 14, color: '#555' }}>
-            Clique sur le lien reçu, ou entre directement le code à 6 chiffres ci-dessous (plus fiable) :
-          </p>
+          <p style={{ fontSize: 14, color: '#555' }}>Entre le code reçu par email :</p>
           <form onSubmit={handleVerifyCode}>
             <input
               type="text"
@@ -76,26 +134,13 @@ export default function Login() {
               onChange={e => setCode(e.target.value)}
               style={{ width: '100%', padding: 12, fontSize: 20, letterSpacing: 4, textAlign: 'center', marginBottom: 12 }}
             />
-            <button type="submit" disabled={verifying} style={{ width: '100%', padding: 12, background: '#1F3350', color: '#fff', border: 'none', borderRadius: 6 }}>
-              {verifying ? 'Vérification...' : 'Valider le code'}
+            <button type="submit" disabled={sending} style={{ width: '100%', padding: 12, background: '#1F3350', color: '#fff', border: 'none', borderRadius: 6 }}>
+              {sending ? 'Vérification...' : 'Valider le code'}
             </button>
           </form>
         </>
-      ) : (
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            required
-            placeholder="ton-email@exemple.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{ width: '100%', padding: 12, fontSize: 15, marginBottom: 12 }}
-          />
-          <button type="submit" style={{ width: '100%', padding: 12, background: '#1F3350', color: '#fff', border: 'none', borderRadius: 6 }}>
-            Recevoir mon lien de connexion
-          </button>
-        </form>
       )}
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </main>
   );
